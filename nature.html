@@ -1,0 +1,92 @@
+<script type="module">
+    import * as THREE from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.js';
+    import { OrbitControls } from 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/examples/jsm/controls/OrbitControls.js';
+
+    // Ваш код далі
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    const ambientLight = new THREE.AmbientLight(0x404040, 1);
+    scene.add(ambientLight);
+
+    const sunlight = new THREE.DirectionalLight(0xffffff, 1);
+    sunlight.position.set(100, 100, 100).normalize();
+    scene.add(sunlight);
+
+    const terrainGeometry = new THREE.PlaneGeometry(200, 200, 128, 128);
+    const terrainMaterial = new THREE.MeshStandardMaterial({ color: 0x228b22 });
+    const terrain = new THREE.Mesh(terrainGeometry, terrainMaterial);
+    terrain.rotation.x = -Math.PI / 2;
+    scene.add(terrain);
+
+    const positionAttribute = terrainGeometry.attributes.position;
+    for (let i = 0; i < positionAttribute.count; i++) {
+        const z = Math.random() * 10;
+        positionAttribute.setZ(i, z);
+    }
+    positionAttribute.needsUpdate = true;
+
+    const waterfallGeometry = new THREE.PlaneGeometry(10, 30);
+    const waterfallMaterial = new THREE.MeshStandardMaterial({
+        color: 0x00aaff, transparent: true, opacity: 0.8
+    });
+    const waterfall = new THREE.Mesh(waterfallGeometry, waterfallMaterial);
+    waterfall.position.set(0, 15, -50);
+    scene.add(waterfall);
+
+    const createTree = (x, z) => {
+        const treeTrunkGeometry = new THREE.CylinderGeometry(0.5, 0.5, 10);
+        const treeLeavesGeometry = new THREE.SphereGeometry(3);
+
+        const treeTrunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
+        const treeLeavesMaterial = new THREE.MeshStandardMaterial({ color: 0x228b22 });
+
+        const trunk = new THREE.Mesh(treeTrunkGeometry, treeTrunkMaterial);
+        const leaves = new THREE.Mesh(treeLeavesGeometry, treeLeavesMaterial);
+
+        leaves.position.set(0, 5, 0);
+
+        const tree = new THREE.Group();
+        tree.add(trunk);
+        tree.add(leaves);
+
+        tree.position.set(x, 0, z);
+        return tree;
+    };
+
+    scene.add(createTree(10, -30));
+    scene.add(createTree(-20, -10));
+    scene.add(createTree(30, -50));
+
+    const gridGeometry = new THREE.PlaneGeometry(50, 50);
+    const gridMaterial = new THREE.MeshBasicMaterial({
+        color: 0x00ff00, wireframe: true
+    });
+    const grid = new THREE.Mesh(gridGeometry, gridMaterial);
+    grid.rotation.x = -Math.PI / 2;
+    grid.position.set(-30, 0.1, -30);
+    scene.add(grid);
+
+    camera.position.set(0, 20, 100);
+    const controls = new OrbitControls(camera, renderer.domElement);
+
+    function animate() {
+        requestAnimationFrame(animate);
+        waterfall.position.y -= 0.1;
+        if (waterfall.position.y < 5) waterfall.position.y = 15;
+        controls.update();
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', function () {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        renderer.setSize(width, height);
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+    });
+</script>
